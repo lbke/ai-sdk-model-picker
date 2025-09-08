@@ -1,0 +1,50 @@
+{
+  "name": "ai-sdk-model-picker",
+  "version": "1.0.0",
+  "description": "NPM library for creating AI model pickers in a standardized fashion based on Vercel AI SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node --test --import tsx $(find src -name '*.test.ts')",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "ai-sdk",
+    "vercel",
+    "models",
+    "providers",
+    "typescript",
+    "openai",
+    "anthropic",
+    "mistral"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "eslint": "^8.57.0",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2"
+  },
+  "peerDependencies": {
+    "ai": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
