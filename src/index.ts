@@ -3,7 +3,7 @@ import type { Provider, Model, ListModelsOptions, LoadModelResult, ProviderWithM
 
 export const providers: Provider[] = PROVIDERS_DATA.map(({ models, ...provider }) => provider);
 
-export const mistralModels: Model[] = PROVIDERS_DATA.find(p => p.name === 'mistralai')?.models || [];
+export const mistralModels: Model[] = PROVIDERS_DATA.find(p => p.name === 'mistral')?.models || [];
 
 function normalizeProviderName(providerName: string): string {
   return PROVIDER_SYNONYMS[providerName] || providerName;
@@ -118,4 +118,4 @@ export function getApiKeyName(providerName: string): string {
 }
 
 export * from './types';
-export { PROVIDERS_DATA } from './data/providers';
+export { PROVIDERS_DATA, ANTHROPIC, GOOGLE, GROQ, MISTRAL, OPENAI } from './data/providers';

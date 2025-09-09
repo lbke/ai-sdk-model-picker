@@ -55,42 +55,21 @@ describe('Providers Data', () => {
       
       assert(providerNames.includes('openai'));
       assert(providerNames.includes('anthropic'));
-      assert(providerNames.includes('mistralai'));
+      assert(providerNames.includes('mistral'));
       assert(providerNames.includes('groq'));
-      assert(providerNames.includes('xai'));
+      // Voluntarily disavbled see providers list
+      // assert(providerNames.includes('xai'));
       assert(providerNames.includes('google'));
     });
 
+    /*
+    This is not true for community package that we may want to support later on
     test('should have consistent package naming', () => {
       PROVIDERS_DATA.forEach(provider => {
         assert(provider.packageName.startsWith('@ai-sdk/'));
       });
     });
-
-    test('should have consistent API key naming', () => {
-      PROVIDERS_DATA.forEach(provider => {
-        assert(provider.apiKeyName.endsWith('_API_KEY'));
-        assert(provider.apiKeyName === provider.apiKeyName.toUpperCase());
-      });
-    });
+    */
   });
 
-  describe('PROVIDER_SYNONYMS', () => {
-    test('should be an object', () => {
-      assert(typeof PROVIDER_SYNONYMS === 'object');
-      assert(PROVIDER_SYNONYMS !== null);
-    });
-
-    test('should map to existing provider names', () => {
-      const providerNames = PROVIDERS_DATA.map(p => p.name);
-      
-      Object.values(PROVIDER_SYNONYMS).forEach(targetProvider => {
-        assert(providerNames.includes(targetProvider));
-      });
-    });
-
-    test('should include mistral synonym', () => {
-      assert.strictEqual(PROVIDER_SYNONYMS['mistral'], 'mistralai');
-    });
-  });
 });

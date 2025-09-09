@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI SDK Model Picker Demo</title>
+
+    <!-- React and Babel CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -45,7 +52,8 @@
             color: #555;
         }
 
-        select, input {
+        select,
+        input {
             width: 100%;
             padding: 10px;
             border: 2px solid #ddd;
@@ -54,12 +62,14 @@
             transition: border-color 0.3s ease;
         }
 
-        select:focus, input:focus {
+        select:focus,
+        input:focus {
             outline: none;
             border-color: #3498db;
         }
 
-        select:disabled, input:disabled {
+        select:disabled,
+        input:disabled {
             background-color: #f8f9fa;
             cursor: not-allowed;
         }
@@ -138,198 +148,208 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>AI SDK Model Picker Demo</h1>
-        
-        <div class="form-group">
-            <label for="provider-select">Select Provider:</label>
-            <select id="provider-select">
-                <option value="">-- Choose a Provider --</option>
-            </select>
-        </div>
+    <div id="root"></div>
 
-        <div class="form-group">
-            <label for="model-select">Select Model:</label>
-            <select id="model-select" disabled>
-                <option value="">-- Choose a Model --</option>
-            </select>
-        </div>
+    <script type="text/babel" data-type="module">
+        // Expectes index.mjs to be copied manually from built version
+        import { providers, listModels, getApiKeyName } from "./index.mjs"
+        const { useState, useEffect } = React;
 
-        <div class="api-keys-section">
-            <h3>API Keys</h3>
-            <div id="api-keys-container">
-                <!-- API key inputs will be populated here -->
+        const ProviderSelect = ({ providers, selectedProvider, onProviderChange }) => (
+            <div className="form-group">
+                <label htmlFor="provider-select">Select Provider:</label>
+                <select id="provider-select" onChange={onProviderChange} value={selectedProvider || ''}>
+                    <option value="">-- Choose a Provider --</option>
+                    {providers.map(provider => (
+                        <option key={provider.name} value={provider.name}>
+                            {provider.name.charAt(0).toUpperCase() + provider.name.slice(1)}
+                        </option>
+                    ))}
+                </select>
             </div>
-        </div>
+        );
 
-        <div id="model-info" class="model-info" style="display: none;">
-            <h3>Selected Model Information</h3>
-            <div id="model-details"></div>
-        </div>
+        const ModelSelect = ({ availableModels, selectedModel, selectedProvider, onModelChange }) => (
+            <div className="form-group">
+                <label htmlFor="model-select">Select Model:</label>
+                <select
+                    id="model-select"
+                    disabled={!selectedProvider || availableModels.length === 0}
+                    onChange={onModelChange}
+                    value={selectedModel?.name || ''}
+                >
+                    <option value="">
+                        {availableModels.length === 0 ? "-- No Models Available --" : "-- Choose a Model --"}
+                    </option>
+                    {availableModels.map(model => (
+                        <option key={model.name} value={model.name}>
+                            {model.name}{model.type && model.type !== "language" ? ` (${model.type})` : ""}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        );
 
-        <div class="state-display">
-            <h3>Current State (aiSdkModelProvider)</h3>
-            <pre id="state-display"></pre>
-        </div>
-    </div>
+        const ApiKeysSection = ({ providers, apiKeys, onApiKeyChange }) => (
+            <div className="api-keys-section">
+                <h3>API Keys</h3>
+                {providers.map(provider => (
+                    <form key={provider.name} className="api-key-input">
+                        <label htmlFor={`api-key-${provider.name}`}>
+                            {provider.name.toUpperCase()} API Key:
+                        </label>
+                        <input
+                            type="password"
+                            id={`api-key-${provider.name}`}
+                            name={getApiKeyName(provider.name)}
+                            placeholder={`Enter ${provider.apiKeyName}`}
+                            value={apiKeys[provider.name] || ''}
+                            onChange={(e) => { e.preventDefault(); onApiKeyChange(provider.name, e.target.value) }}
+                        />
+                    </form>
+                ))}
+            </div>
+        );
 
-    <script type="module">
-        // Import the ai-sdk-model-picker library
-        import { providers, listModels, getApiKeyName } from '../dist/index.mjs';
+        const ModelInfo = ({ selectedModel }) => {
+            if (!selectedModel) return null;
 
-        // Global state object
-        window.aiSdkModelProvider = {
-            selectedProvider: null,
-            selectedModel: null,
-            apiKeys: {},
-            availableModels: []
+            return (
+                <div className="model-info">
+                    <h3>Selected Model Information</h3>
+                    <div>
+                        <p><strong>Name:</strong> {selectedModel.name}</p>
+                        <p><strong>Type:</strong> {selectedModel.type || 'language'}</p>
+
+                        {selectedModel.capabilities && (
+                            <>
+                                <p><strong>Capabilities:</strong></p>
+                                <div className="capabilities">
+                                    {Object.entries(selectedModel.capabilities).map(([capability, supported]) =>
+                                        supported && (
+                                            <span key={capability} className="capability">
+                                                {capability}
+                                            </span>
+                                        )
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
         };
 
-        // DOM elements
-        const providerSelect = document.getElementById('provider-select');
-        const modelSelect = document.getElementById('model-select');
-        const apiKeysContainer = document.getElementById('api-keys-container');
-        const modelInfo = document.getElementById('model-info');
-        const modelDetails = document.getElementById('model-details');
-        const stateDisplay = document.getElementById('state-display');
+        const StateDisplay = ({ selectedProvider, selectedModel, apiKeys, availableModels }) => (
+            <div className="state-display">
+                <h3>Current State (aiSdkModelProvider)</h3>
+                <pre>
+                    {JSON.stringify({
+                        selectedProvider,
+                        selectedModel,
+                        apiKeys: Object.entries(apiKeys).filter(([k, v]) => !!v).map(([k, v]) => k),
+                        availableModels: availableModels.map(m => m.name)
+                    }, null, 2)}
+                </pre>
+            </div>
+        );
 
-        // Initialize the demo
-        function init() {
-            populateProviders();
-            createApiKeyInputs();
-            updateStateDisplay();
-        }
+        function App() {
+            const [selectedProvider, setSelectedProvider] = useState(null);
+            const [selectedModel, setSelectedModel] = useState(null);
+            const [apiKeys, setApiKeys] = useState({});
+            const [availableModels, setAvailableModels] = useState([]);
 
-        // Populate provider dropdown
-        function populateProviders() {
-            providers.forEach(provider => {
-                const option = document.createElement('option');
-                option.value = provider.name;
-                option.textContent = provider.name.charAt(0).toUpperCase() + provider.name.slice(1);
-                providerSelect.appendChild(option);
-            });
-        }
+            useEffect(() => {
+                // Update global state object for external access
+                window.aiSdkModelProvider = {
+                    selectedProvider,
+                    selectedModel,
+                    apiKeys,
+                    availableModels
+                };
+            }, [selectedProvider, selectedModel, apiKeys, availableModels]);
 
-        // Create API key inputs for all providers
-        function createApiKeyInputs() {
-            providers.forEach(provider => {
-                const div = document.createElement('div');
-                div.className = 'api-key-input';
-                
-                const label = document.createElement('label');
-                label.textContent = `${provider.name.toUpperCase()} API Key:`;
-                label.setAttribute('for', `api-key-${provider.name}`);
-                
-                const input = document.createElement('input');
-                input.type = 'password';
-                input.id = `api-key-${provider.name}`;
-                input.placeholder = `Enter ${provider.apiKeyName}`;
-                input.addEventListener('input', (e) => {
-                    window.aiSdkModelProvider.apiKeys[provider.name] = e.target.value;
-                    updateStateDisplay();
-                });
-                
-                div.appendChild(label);
-                div.appendChild(input);
-                apiKeysContainer.appendChild(div);
-            });
-        }
+            const handleProviderChange = async (e) => {
+                const selectedProviderName = e.target.value;
+                setSelectedModel(null);
 
-        // Handle provider selection
-        providerSelect.addEventListener('change', (e) => {
-            const selectedProviderName = e.target.value;
-            
-            if (selectedProviderName) {
-                window.aiSdkModelProvider.selectedProvider = selectedProviderName;
-                
-                // Get models for selected provider
-                const modelData = listModels({ provider: selectedProviderName });
-                
-                if (modelData.length > 0) {
-                    window.aiSdkModelProvider.availableModels = modelData[0].models;
-                    populateModels(modelData[0].models);
-                    modelSelect.disabled = false;
-                } else {
-                    window.aiSdkModelProvider.availableModels = [];
-                    modelSelect.innerHTML = '<option value="">-- No Models Available --</option>';
-                    modelSelect.disabled = true;
-                }
-            } else {
-                window.aiSdkModelProvider.selectedProvider = null;
-                window.aiSdkModelProvider.availableModels = [];
-                modelSelect.innerHTML = '<option value="">-- Choose a Model --</option>';
-                modelSelect.disabled = true;
-            }
-            
-            // Reset model selection
-            window.aiSdkModelProvider.selectedModel = null;
-            modelInfo.style.display = 'none';
-            updateStateDisplay();
-        });
+                if (selectedProviderName) {
+                    setSelectedProvider(selectedProviderName);
 
-        // Populate model dropdown
-        function populateModels(models) {
-            modelSelect.innerHTML = '<option value="">-- Choose a Model --</option>';
-            
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model.name;
-                option.textContent = `${model.name} (${model.type || 'language'})`;
-                modelSelect.appendChild(option);
-            });
-        }
+                    try {
+                        const modelData = listModels({ provider: selectedProviderName });
 
-        // Handle model selection
-        modelSelect.addEventListener('change', (e) => {
-            const selectedModelName = e.target.value;
-            
-            if (selectedModelName) {
-                const selectedModel = window.aiSdkModelProvider.availableModels.find(
-                    model => model.name === selectedModelName
-                );
-                
-                window.aiSdkModelProvider.selectedModel = selectedModel;
-                showModelInfo(selectedModel);
-            } else {
-                window.aiSdkModelProvider.selectedModel = null;
-                modelInfo.style.display = 'none';
-            }
-            
-            updateStateDisplay();
-        });
-
-        // Display model information
-        function showModelInfo(model) {
-            let infoHTML = `
-                <p><strong>Name:</strong> ${model.name}</p>
-                <p><strong>Type:</strong> ${model.type || 'language'}</p>
-            `;
-            
-            if (model.capabilities) {
-                infoHTML += '<p><strong>Capabilities:</strong></p>';
-                infoHTML += '<div class="capabilities">';
-                
-                Object.entries(model.capabilities).forEach(([capability, supported]) => {
-                    if (supported) {
-                        infoHTML += `<span class="capability">${capability}</span>`;
+                        if (modelData.length > 0) {
+                            setAvailableModels(modelData[0].models);
+                        } else {
+                            setAvailableModels([]);
+                        }
+                    } catch (error) {
+                        console.error('Error loading models:', error);
+                        setAvailableModels([]);
                     }
-                });
-                
-                infoHTML += '</div>';
-            }
-            
-            modelDetails.innerHTML = infoHTML;
-            modelInfo.style.display = 'block';
+                } else {
+                    setSelectedProvider(null);
+                    setAvailableModels([]);
+                }
+            };
+
+            const handleModelChange = (e) => {
+                const selectedModelName = e.target.value;
+
+                if (selectedModelName) {
+                    const selectedModelData = availableModels.find(
+                        model => model.name === selectedModelName
+                    );
+                    setSelectedModel(selectedModelData);
+                } else {
+                    setSelectedModel(null);
+                }
+            };
+
+            const handleApiKeyChange = (providerName, value) => {
+                setApiKeys(prev => ({
+                    ...prev,
+                    [providerName]: value
+                }));
+            };
+
+
+            return (
+                <div className="container">
+                    <h1>AI SDK Model Picker Demo</h1>
+                    <ProviderSelect
+                        providers={providers}
+                        selectedProvider={selectedProvider}
+                        onProviderChange={handleProviderChange}
+                    />
+                    <ModelSelect
+                        availableModels={availableModels}
+                        selectedModel={selectedModel}
+                        selectedProvider={selectedProvider}
+                        onModelChange={handleModelChange}
+                    />
+                    <ApiKeysSection
+                        providers={providers}
+                        apiKeys={apiKeys}
+                        onApiKeyChange={handleApiKeyChange}
+                    />
+                    <ModelInfo selectedModel={selectedModel} />
+                    <StateDisplay
+                        selectedProvider={selectedProvider}
+                        selectedModel={selectedModel}
+                        apiKeys={apiKeys}
+                        availableModels={availableModels}
+                    />
+                </div>
+            );
         }
 
-        // Update state display
-        function updateStateDisplay() {
-            stateDisplay.textContent = JSON.stringify(window.aiSdkModelProvider, null, 2);
-        }
-
-        // Initialize the demo when the page loads
-        init();
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
+
 </html>
