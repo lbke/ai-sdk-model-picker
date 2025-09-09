@@ -154,7 +154,7 @@
 
     <script type="text/babel" data-type="module">
         // Expectes index.mjs to be copied manually from built version
-        import { providers, listModels, getApiKeyName } from "./index.mjs"
+        import { providers, listModels, getApiKeyName, loadModel } from "./index.mjs"
         const { useState, useEffect } = React;
 
         const ProviderSelect = ({ providers, selectedProvider, onProviderChange }) => (
@@ -270,6 +270,10 @@
                     apiKeys,
                     availableModels
                 };
+                // Do not remove the values on component unmount
+                // (since they are used globally)
+                // Could be improved by using a Context if the app is a React app
+                // For Astro/Vite, use nanostores
             }, [selectedProvider, selectedModel, apiKeys, availableModels]);
 
             const handleProviderChange = async (e) => {
@@ -297,7 +301,7 @@
                 }
             };
 
-            const handleModelChange = (e) => {
+            const handleModelChange = async (e) => {
                 const selectedModelName = e.target.value;
 
                 if (selectedModelName) {
@@ -305,6 +309,9 @@
                         model => model.name === selectedModelName
                     );
                     setSelectedModel(selectedModelData);
+                    // TODO: couldn't test the loading yet, not sure where the package is expected to be installed to support client-side dynamic loading, will need a test with Vite
+                    // const aiSdkModel = await loadModel({ model: selectedModelName, provider: selectedProvider })
+                    // console.log("loaded model", aiSdkMode)
                 } else {
                     setSelectedModel(null);
                 }

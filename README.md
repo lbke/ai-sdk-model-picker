@@ -2,36 +2,37 @@
 
 NPM library for creating AI model pickers in a standardized fashion based on Vercel AI SDK.
 
+A project vibe coded by [Eric Burel](https://www.ericburel.tech/) at [LBKE, a French training organisation (🇫🇷)](https://www.lbke.fr/) with Claude Code.
+
 ## Features
 
-- ✅ Support for all official Vercel AI SDK providers
+- ✅ Support for official Vercel AI SDK providers
 - ✅ List available providers and their models
 - ✅ Dynamic model filtering with flexible options
-- ✅ Dynamic importing of AI SDK provider packages
+- ✅ Dynamic importing of AI SDK provider packages, using JavaScript `import()`
 - ✅ API key name resolution for each provider
-- ✅ Provider name synonyms support (e.g., "mistral" → "mistralai")
+- ✅ Provider name synonyms support (e.g., "mistralai" → "mistral")
 - ✅ TypeScript support with comprehensive type definitions
 - ✅ Works in both Node.js and browser environments
 
+⚠️ Providers list is maintained manually, please contribute!
+
 ## Installation
+
+First, install the dependencies for the providers you'll want to support.
+This package helps picking a provider and loading the right package,
+but won't install the dependencies for you in order to streamline your JS bundle.
+
+```bash
+npm install ai 
+# Pick the providers you want to support
+npm install @ai-sdk/mistral @ai-sdk/openai @ai-sdk/anthropic @ai-sdk/groq @ai-sdk/google
+```
+
+💡 Want more providers? Contribute to the providers list!
 
 ```bash
 npm install ai-sdk-model-picker
-```
-
-Note: You'll also need to install the specific AI SDK provider packages you want to use:
-
-```bash
-# For OpenAI
-npm install @ai-sdk/openai
-
-# For Anthropic
-npm install @ai-sdk/anthropic
-
-# For Mistral
-npm install @ai-sdk/mistral
-
-# And so on...
 ```
 
 ## Usage
@@ -233,6 +234,10 @@ Contributions are welcome! The provider data is maintained in `src/data/provider
 2. Add any synonyms to `PROVIDER_SYNONYMS`
 3. Update the README documentation
 4. Add tests for the new provider
+
+You can test the "basic-demo.html" example using `http-server`. Currently, you'll need to manually copy the built "index.mjs" file
+in the examples folder.
+
 
 ## License
 

@@ -157,10 +157,26 @@ function listModels(options = {}) {
     };
   }).filter((result) => result.models.length > 0);
 }
-async function loadModel(modelId) {
-  const [providerName, modelName] = modelId.includes("/") ? modelId.split("/", 2) : ["", modelId];
-  if (!providerName) {
-    throw new Error(`Invalid model ID format: ${modelId}. Expected format: 'provider/model'`);
+async function loadModel(options) {
+  let providerName;
+  let modelName;
+  if (typeof options === "string") {
+    const [provider2, model2] = options.includes("/") ? options.split("/", 2) : ["", options];
+    if (!provider2) {
+      throw new Error(`Invalid model ID format: ${options}. Expected format: 'provider/model'`);
+    }
+    providerName = provider2;
+    modelName = model2;
+  } else if ("modelId" in options) {
+    const [provider2, model2] = options.modelId.includes("/") ? options.modelId.split("/", 2) : ["", options.modelId];
+    if (!provider2) {
+      throw new Error(`Invalid model ID format: ${options.modelId}. Expected format: 'provider/model'`);
+    }
+    providerName = provider2;
+    modelName = model2;
+  } else {
+    providerName = options.provider;
+    modelName = options.model;
   }
   const provider = findProvider(providerName);
   if (!provider) {
@@ -190,7 +206,8 @@ async function loadModel(modelId) {
       modelName
     };
   } catch (error) {
-    throw new Error(`Failed to load model '${modelId}': ${error instanceof Error ? error.message : "Unknown error"}`);
+    const modelIdentifier = typeof options === "string" ? options : "modelId" in options ? options.modelId : `${options.provider}/${options.model}`;
+    throw new Error(`Failed to load model '${modelIdentifier}': ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 function getApiKeyName(providerName) {

@@ -59,13 +59,39 @@ export function listModels(options: ListModelsOptions = {}): Array<{provider: st
   }).filter(result => result.models.length > 0);
 }
 
-export async function loadModel(modelId: string): Promise<LoadModelResult> {
-  const [providerName, modelName] = modelId.includes('/') 
-    ? modelId.split('/', 2) 
-    : ['', modelId];
-
-  if (!providerName) {
-    throw new Error(`Invalid model ID format: ${modelId}. Expected format: 'provider/model'`);
+/**
+ * Will throw an error if you don't install relevant packages for each provider
+ * @ai-sdk/mistral, @ai-sidk/openai etc.
+ */
+export async function loadModel(options: string | { provider: string; model: string } | { modelId: string }): Promise<LoadModelResult> {
+  let providerName: string;
+  let modelName: string;
+  
+  if (typeof options === 'string') {
+    const [provider, model] = options.includes('/') 
+      ? options.split('/', 2) 
+      : ['', options];
+    
+    if (!provider) {
+      throw new Error(`Invalid model ID format: ${options}. Expected format: 'provider/model'`);
+    }
+    
+    providerName = provider;
+    modelName = model;
+  } else if ('modelId' in options) {
+    const [provider, model] = options.modelId.includes('/') 
+      ? options.modelId.split('/', 2) 
+      : ['', options.modelId];
+    
+    if (!provider) {
+      throw new Error(`Invalid model ID format: ${options.modelId}. Expected format: 'provider/model'`);
+    }
+    
+    providerName = provider;
+    modelName = model;
+  } else {
+    providerName = options.provider;
+    modelName = options.model;
   }
 
   const provider = findProvider(providerName);
@@ -105,7 +131,8 @@ export async function loadModel(modelId: string): Promise<LoadModelResult> {
       modelName: modelName
     };
   } catch (error) {
-    throw new Error(`Failed to load model '${modelId}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const modelIdentifier = typeof options === 'string' ? options : 'modelId' in options ? options.modelId : `${options.provider}/${options.model}`;
+    throw new Error(`Failed to load model '${modelIdentifier}': ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

@@ -112,23 +112,58 @@ describe("AI SDK Model Picker", () => {
   });
 
   describe("loadModel function", () => {
-    test("should throw error for invalid model ID format", async () => {
+    test("should throw error for invalid model ID format (string)", async () => {
       await assert.rejects(
         loadModel("invalid-model-id"),
         /Invalid model ID format/
       );
     });
 
-    test("should throw error for unknown provider", async () => {
+    test("should throw error for invalid model ID format (object)", async () => {
+      await assert.rejects(
+        loadModel({ modelId: "invalid-model-id" }),
+        /Invalid model ID format/
+      );
+    });
+
+    test("should throw error for unknown provider (string)", async () => {
       await assert.rejects(
         loadModel("unknown/model"),
         /Provider 'unknown' not found/
       );
     });
 
-    test("should throw error for unknown model", async () => {
+    test("should throw error for unknown provider (object with modelId)", async () => {
+      await assert.rejects(
+        loadModel({ modelId: "unknown/model" }),
+        /Provider 'unknown' not found/
+      );
+    });
+
+    test("should throw error for unknown provider (object with provider/model)", async () => {
+      await assert.rejects(
+        loadModel({ provider: "unknown", model: "model" }),
+        /Provider 'unknown' not found/
+      );
+    });
+
+    test("should throw error for unknown model (string)", async () => {
       await assert.rejects(
         loadModel("openai/unknown-model"),
+        /Model 'unknown-model' not found for provider 'openai'/
+      );
+    });
+
+    test("should throw error for unknown model (object with modelId)", async () => {
+      await assert.rejects(
+        loadModel({ modelId: "openai/unknown-model" }),
+        /Model 'unknown-model' not found for provider 'openai'/
+      );
+    });
+
+    test("should throw error for unknown model (object with provider/model)", async () => {
+      await assert.rejects(
+        loadModel({ provider: "openai", model: "unknown-model" }),
         /Model 'unknown-model' not found for provider 'openai'/
       );
     });

@@ -32,6 +32,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@ai-sdk/mistral": "^2.0.13",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
