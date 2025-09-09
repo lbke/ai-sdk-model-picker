@@ -1,6 +1,6 @@
 {
   "name": "ai-sdk-model-picker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "NPM library for creating AI model pickers in a standardized fashion based on Vercel AI SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
