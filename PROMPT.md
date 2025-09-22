@@ -21,15 +21,15 @@ This NPM library helps creating AI model pickers in a standardized fashion.
 Example code using all features:
 
 ```js
-import { providers, mistralModels, listModels, loadModel, getApiKeyName } from "ai-sdk-model-picker"
+import { providers, mistralModels, findModels, loadModel, getApiKeyName } from "ai-sdk-model-picker"
 // [{name: "mistralai"}, {name: "openai"}]
 console.log(providers)
 // [{name: "mistral-medium-2509"}]
 console.log(mistralModels)
 // [{provider: "mistralai", models: [{name:"mistral-medium-2508"}]}]
-console.log(listModels({provider: "mistralai"}))
-console.log(listModels({providers: ["mistralai", "openai"]}))
-console.log(listModels({excludedProviders: ["xai"], excludedModels:["mistralai/codestral-latest"]})
+console.log(findModels({provider: "mistralai"}))
+console.log(findModels({providers: ["mistralai", "openai"]}))
+console.log(findModels({excludedProviders: ["xai"], excludedModels:["mistralai/codestral-latest"]})
 // MISTRAL_API_KEY
 console.log(getApiKeyName("mistralai")) 
 

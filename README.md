@@ -40,7 +40,7 @@ npm install ai-sdk-model-picker
 ### Basic Usage
 
 ```javascript
-import { providers, mistralModels, listModels, loadModel, getApiKeyName } from "ai-sdk-model-picker"
+import { providers, mistralModels, listProviderModels, findModels, loadModel, getApiKeyName } from "ai-sdk-model-picker"
 
 // List all available providers
 console.log(providers)
@@ -51,14 +51,15 @@ console.log(mistralModels)
 // Output: [{name: "mistral-large-latest", type: "language", capabilities: {...}}, ...]
 
 // List models for a specific provider
-console.log(listModels({provider: "mistralai"}))
+console.log(listProviderModels({provider: "mistralai"}))
+// Output: {provider: "mistralai", models: [{name:"mistral-large-latest", ...}]}
+
+// List models for multiple providers or run a free search (outputs an array of providers + models)
+console.log(findModels({providers: ["mistralai", "openai"]}))
 // Output: [{provider: "mistralai", models: [{name:"mistral-large-latest", ...}]}]
 
-// List models for multiple providers
-console.log(listModels({providers: ["mistralai", "openai"]}))
-
 // List models excluding certain providers/models
-console.log(listModels({
+console.log(findModels({
   excludedProviders: ["xai"], 
   excludedModels: ["mistralai/codestral-latest"]
 }))
@@ -78,15 +79,15 @@ const modelResult = await loadModel("mistralai/mistral-large-latest")
 ### Advanced Filtering
 
 ```javascript
-import { listModels } from "ai-sdk-model-picker"
+import { findModels } from "ai-sdk-model-picker"
 
 // Filter by model type
-const languageModels = listModels({ modelType: 'language' })
-const embeddingModels = listModels({ modelType: 'embedding' })
-const imageModels = listModels({ modelType: 'image' })
+const languageModels = findModels({ modelType: 'language' })
+const embeddingModels = findModels({ modelType: 'embedding' })
+const imageModels = findModels({ modelType: 'image' })
 
 // Complex filtering example
-const filteredModels = listModels({
+const filteredModels = findModels({
   providers: ["openai", "anthropic", "mistralai"],
   excludedModels: ["gpt-3.5-turbo", "claude-3-haiku-20240307"],
   modelType: "language"
@@ -121,11 +122,11 @@ console.log(text)
 The library supports provider name synonyms for better developer experience:
 
 ```javascript
-import { listModels, getApiKeyName } from "ai-sdk-model-picker"
+import { findModels, getApiKeyName } from "ai-sdk-model-picker"
 
 // These are equivalent:
-console.log(listModels({provider: "mistral"}))
-console.log(listModels({provider: "mistralai"}))
+console.log(findModels({provider: "mistral"}))
+console.log(findModels({provider: "mistralai"}))
 
 // Both return "MISTRAL_API_KEY"
 console.log(getApiKeyName("mistral"))
@@ -174,12 +175,12 @@ interface Provider {
 
 Convenience export for Mistral AI models.
 
-### `listModels(options?: ListModelsOptions): Array<{provider: string, models: Model[]}>`
+### `findModels(options?: findModelsOptions): Array<{provider: string, models: Model[]}>`
 
 List models with flexible filtering options.
 
 ```typescript
-interface ListModelsOptions {
+interface findModelsOptions {
   provider?: string;           // Single provider name
   providers?: string[];        // Multiple provider names
   excludedProviders?: string[]; // Providers to exclude

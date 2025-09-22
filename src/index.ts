@@ -1,5 +1,5 @@
 import { PROVIDERS_DATA, PROVIDER_SYNONYMS } from './data/providers';
-import type { Provider, Model, ListModelsOptions, LoadModelResult, ProviderWithModels } from './types';
+import type { Provider, Model, findModelsOptions, LoadModelResult, ProviderWithModels, listProviderModelsOptions } from './types';
 
 export const providers: Provider[] = PROVIDERS_DATA.map(({ models, ...provider }) => provider);
 
@@ -14,15 +14,36 @@ function findProvider(providerName: string): ProviderWithModels | undefined {
   return PROVIDERS_DATA.find(p => p.name === normalizedName);
 }
 
-export function listModels(options: ListModelsOptions = {}): Array<{provider: string, models: Model[]}> {
-  let providersToInclude: ProviderWithModels[] = [];
+export function listProviderModels(options: listProviderModelsOptions) {
+  const provider = findProvider(options.provider);
+  if (!provider) {
+    throw new Error(`Provider ${provider} not recognized`)
+  }
+  let models = provider.models;
 
-  if (options.provider) {
-    const provider = findProvider(options.provider);
-    if (provider) {
-      providersToInclude = [provider];
-    }
-  } else if (options.providers) {
+  if (options.modelType) {
+    models = models.filter(model => model.type === options.modelType);
+  }
+
+  if (options.excludedModels) {
+    const excludedModels = options.excludedModels.map(modelName => {
+      if (modelName.includes('/')) {
+        return modelName.split('/')[1];
+      }
+      return modelName;
+    });
+    models = models.filter(model => !excludedModels.includes(model.name));
+  }
+
+  return {
+    provider: provider.name,
+    models
+  };
+}
+
+export function findModels(options: findModelsOptions = {}): Array<{ provider: string, models: Model[] }> {
+  let providersToInclude: ProviderWithModels[] = [];
+  if (options.providers) {
     providersToInclude = options.providers
       .map(name => findProvider(name))
       .filter((p): p is ProviderWithModels => p !== undefined);
@@ -37,11 +58,11 @@ export function listModels(options: ListModelsOptions = {}): Array<{provider: st
 
   return providersToInclude.map(provider => {
     let models = provider.models;
-    
+
     if (options.modelType) {
       models = models.filter(model => model.type === options.modelType);
     }
-    
+
     if (options.excludedModels) {
       const excludedModels = options.excludedModels.map(modelName => {
         if (modelName.includes('/')) {
@@ -51,7 +72,7 @@ export function listModels(options: ListModelsOptions = {}): Array<{provider: st
       });
       models = models.filter(model => !excludedModels.includes(model.name));
     }
-    
+
     return {
       provider: provider.name,
       models
@@ -66,27 +87,27 @@ export function listModels(options: ListModelsOptions = {}): Array<{provider: st
 export async function loadModel(options: string | { provider: string; model: string } | { modelId: string }): Promise<LoadModelResult> {
   let providerName: string;
   let modelName: string;
-  
+
   if (typeof options === 'string') {
-    const [provider, model] = options.includes('/') 
-      ? options.split('/', 2) 
+    const [provider, model] = options.includes('/')
+      ? options.split('/', 2)
       : ['', options];
-    
+
     if (!provider) {
       throw new Error(`Invalid model ID format: ${options}. Expected format: 'provider/model'`);
     }
-    
+
     providerName = provider;
     modelName = model;
   } else if ('modelId' in options) {
-    const [provider, model] = options.modelId.includes('/') 
-      ? options.modelId.split('/', 2) 
+    const [provider, model] = options.modelId.includes('/')
+      ? options.modelId.split('/', 2)
       : ['', options.modelId];
-    
+
     if (!provider) {
       throw new Error(`Invalid model ID format: ${options.modelId}. Expected format: 'provider/model'`);
     }
-    
+
     providerName = provider;
     modelName = model;
   } else {
@@ -107,19 +128,19 @@ export async function loadModel(options: string | { provider: string; model: str
   try {
     const providerModule = await import(provider.packageName);
     const providerInstance = providerModule[provider.name] || providerModule.default;
-    
+
     if (!providerInstance) {
       throw new Error(`No default export found for provider package: ${provider.packageName}`);
     }
 
     let loadedModel;
     if (model.type === 'embedding') {
-      loadedModel = providerInstance.textEmbedding ? 
-        providerInstance.textEmbedding(modelName) : 
+      loadedModel = providerInstance.textEmbedding ?
+        providerInstance.textEmbedding(modelName) :
         providerInstance(modelName);
     } else if (model.type === 'image') {
-      loadedModel = providerInstance.image ? 
-        providerInstance.image(modelName) : 
+      loadedModel = providerInstance.image ?
+        providerInstance.image(modelName) :
         providerInstance(modelName);
     } else {
       loadedModel = providerInstance(modelName);

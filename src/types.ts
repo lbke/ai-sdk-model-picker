@@ -23,9 +23,17 @@ export interface ProviderWithModels extends Provider {
   models: Model[];
 }
 
-export interface ListModelsOptions {
-  provider?: string;
+export interface findModelsOptions {
+  /** We always use a list of providers */
   providers?: string[];
+  excludedProviders?: string[];
+  excludedModels?: string[];
+  modelType?: Model['type'];
+}
+
+export interface listProviderModelsOptions {
+  /** We always get a single provider */
+  provider: string;
   excludedProviders?: string[];
   excludedModels?: string[];
   modelType?: Model['type'];

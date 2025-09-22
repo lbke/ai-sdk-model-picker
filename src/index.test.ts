@@ -3,7 +3,7 @@ import assert from "node:assert";
 import {
   providers,
   mistralModels,
-  listModels,
+  findModels,
   loadModel,
   getApiKeyName,
 } from "./index";
@@ -40,9 +40,9 @@ describe("AI SDK Model Picker", () => {
     });
   });
 
-  describe("listModels function", () => {
+  describe("findModels function", () => {
     test("should return all providers and models when no options provided", () => {
-      const result = listModels();
+      const result = findModels();
 
       assert(Array.isArray(result));
       assert(result.length > 0);
@@ -54,7 +54,7 @@ describe("AI SDK Model Picker", () => {
     });
 
     test("should filter by single provider", () => {
-      const result = listModels({ provider: "openai" });
+      const result = findModels({ provider: "openai" });
 
       assert.strictEqual(result.length, 1);
       assert.strictEqual(result[0].provider, "openai");
@@ -62,14 +62,14 @@ describe("AI SDK Model Picker", () => {
     });
 
     test("should handle provider synonyms", () => {
-      const result = listModels({ provider: "mistralai" });
+      const result = findModels({ provider: "mistralai" });
 
       assert.strictEqual(result.length, 1);
       assert.strictEqual(result[0].provider, "mistral");
     });
 
     test("should filter by multiple providers", () => {
-      const result = listModels({ providers: ["openai", "anthropic"] });
+      const result = findModels({ providers: ["openai", "anthropic"] });
 
       assert.strictEqual(result.length, 2);
       const providerNames = result.map((r) => r.provider);
@@ -78,14 +78,14 @@ describe("AI SDK Model Picker", () => {
     });
 
     test("should exclude providers", () => {
-      const result = listModels({ excludedProviders: ["openai"] });
+      const result = findModels({ excludedProviders: ["openai"] });
 
       const providerNames = result.map((r) => r.provider);
       assert(!providerNames.includes("openai"));
     });
 
     test("should filter by model type", () => {
-      const result = listModels({ modelType: "embedding" });
+      const result = findModels({ modelType: "embedding" });
 
       result.forEach((providerResult) => {
         providerResult.models.forEach((model) => {
@@ -95,7 +95,7 @@ describe("AI SDK Model Picker", () => {
     });
 
     test("should exclude specific models", () => {
-      const result = listModels({
+      const result = findModels({
         provider: "openai",
         excludedModels: ["gpt-4o", "openai/gpt-4"],
       });
@@ -106,7 +106,7 @@ describe("AI SDK Model Picker", () => {
     });
 
     test("should return empty array for unknown provider", () => {
-      const result = listModels({ provider: "unknown" });
+      const result = findModels({ provider: "unknown" });
       assert.strictEqual(result.length, 0);
     });
   });

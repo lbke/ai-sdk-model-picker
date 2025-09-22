@@ -154,7 +154,7 @@
 
     <script type="text/babel" data-type="module">
         // Expectes index.mjs to be copied manually from built version
-        import { providers, listModels, getApiKeyName, loadModel } from "./index.mjs"
+        import { providers, findModels, getApiKeyName, loadModel } from "./index.mjs"
         const { useState, useEffect } = React;
 
         const ProviderSelect = ({ providers, selectedProvider, onProviderChange }) => (
@@ -284,7 +284,7 @@
                     setSelectedProvider(selectedProviderName);
 
                     try {
-                        const modelData = listModels({ provider: selectedProviderName });
+                        const modelData = findModels({ provider: selectedProviderName });
 
                         if (modelData.length > 0) {
                             setAvailableModels(modelData[0].models);

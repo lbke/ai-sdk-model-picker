@@ -121,7 +121,7 @@ function findProvider(providerName) {
   const normalizedName = normalizeProviderName(providerName);
   return PROVIDERS_DATA.find((p) => p.name === normalizedName);
 }
-function listModels(options = {}) {
+function findModels(options = {}) {
   let providersToInclude = [];
   if (options.provider) {
     const provider = findProvider(options.provider);
@@ -225,7 +225,7 @@ export {
   OPENAI,
   PROVIDERS_DATA,
   getApiKeyName,
-  listModels,
+  findModels,
   loadModel,
   mistralModels,
   providers
